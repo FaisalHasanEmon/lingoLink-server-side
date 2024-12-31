@@ -3,7 +3,7 @@ const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5500;
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // Middleware
 app.use(cors());
@@ -54,6 +54,21 @@ async function run() {
       const email = req.query.email;
       const query = { email: email };
       const result = await tutorsCollection.find(query).toArray();
+      res.send(result);
+    });
+    // Delete a document by id
+    app.delete("/myTutorials/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await tutorsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //Get tutor details by id
+    app.get("/tutorDetails/:tutorId", async (req, res) => {
+      const id = req.params.tutorId;
+      const query = { _id: new ObjectId(id) };
+      const result = await tutorsCollection.findOne(query);
       res.send(result);
     });
 
