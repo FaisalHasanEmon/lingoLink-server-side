@@ -32,16 +32,26 @@ async function run() {
 
     const lingoLinkDB = client.db("lingoLink");
     const tutorsCollection = lingoLinkDB.collection("tutors");
-    // Send all Teacher data
-    app.get("/tutors", async (req, res) => {
-      const result = await tutorsCollection.find().toArray();
+    const usersCollection = lingoLinkDB.collection("users");
+
+    app.post("/newUser", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+
+    // Add Tutorial
     app.post("/addTutorial", async (req, res) => {
       const newTutorial = req.body;
       const result = await tutorsCollection.insertOne(newTutorial);
       res.send(result);
     });
+    // Send all Teacher data
+    app.get("/tutors", async (req, res) => {
+      const result = await tutorsCollection.find().toArray();
+      res.send(result);
+    });
+
     // Send Teachers data by category
     app.get("/category", async (req, res) => {
       const category = req.query.category;
