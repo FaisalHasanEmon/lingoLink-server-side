@@ -56,6 +56,31 @@ async function run() {
       const result = await tutorsCollection.find(query).toArray();
       res.send(result);
     });
+
+    app.put("/myTutorials", async (req, res) => {
+      const updateTutorial = req.body;
+      const id = updateTutorial.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: updateTutorial.newName,
+          email: updateTutorial.newEmail,
+          image: updateTutorial.newImage,
+          price: updateTutorial.newPrice,
+          review: updateTutorial.newReview,
+          language: updateTutorial.newLanguage,
+          description: updateTutorial.newDescription,
+        },
+      };
+      const result = await tutorsCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+
+      res.send(result);
+    });
     // Delete a document by id
     app.delete("/myTutorials/:id", async (req, res) => {
       const id = req.params.id;
