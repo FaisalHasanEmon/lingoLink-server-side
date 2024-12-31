@@ -32,11 +32,59 @@ async function run() {
 
     const lingoLinkDB = client.db("lingoLink");
     const tutorsCollection = lingoLinkDB.collection("tutors");
-    // Load all data
+    // Send all Teacher data
     app.get("/tutors", async (req, res) => {
       const result = await tutorsCollection.find().toArray();
       res.send(result);
     });
+    app.post("/addTutorial", async (req, res) => {
+      const newTutorial = req.body;
+      const result = await tutorsCollection.insertOne(newTutorial);
+      res.send(result);
+    });
+    // Send Teachers data by category
+    app.get("/category", async (req, res) => {
+      const category = req.query.category;
+      const query = { language: category };
+      const result = await tutorsCollection.find(query).toArray();
+      res.send(result);
+    });
+    // Send My Added Tutorials data
+    app.get("/myTutorials", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await tutorsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //Send Teacher number per category
+    app.get("/category/numberOfTutors", async (req, res) => {
+      try {
+        const result = await tutorsCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$language", // Group by the language field
+                count: { $sum: 1 }, // Count the number of tutors for each language
+              },
+            },
+            {
+              $project: {
+                language: "$_id",
+                count: 1,
+                _id: 0,
+              },
+            },
+          ])
+          .toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching language counts:", error);
+        res.status(500).send("Server Error");
+      }
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
