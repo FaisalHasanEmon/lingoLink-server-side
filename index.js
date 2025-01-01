@@ -34,10 +34,18 @@ async function run() {
     const tutorsCollection = lingoLinkDB.collection("tutors");
     const usersCollection = lingoLinkDB.collection("users");
 
+    // Add user
     app.post("/newUser", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
       res.send(result);
+    });
+
+    app.get("/countUser&Tutorials", async (req, res) => {
+      const numberOfUsers = await usersCollection.estimatedDocumentCount();
+      const numberOfTutorials = await tutorsCollection.estimatedDocumentCount();
+
+      res.send({ numberOfUsers, numberOfTutorials });
     });
 
     // Add Tutorial
@@ -48,7 +56,13 @@ async function run() {
     });
     // Send all Teacher data
     app.get("/tutors", async (req, res) => {
-      const result = await tutorsCollection.find().toArray();
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const result = await tutorsCollection
+        .find()
+        .skip(page * size)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
