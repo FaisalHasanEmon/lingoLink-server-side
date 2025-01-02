@@ -97,12 +97,23 @@ async function run() {
     app.get("/tutors", async (req, res) => {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
-      const result = await tutorsCollection
-        .find()
-        .skip(page * size)
-        .limit(size)
-        .toArray();
-      res.send(result);
+      const search = req.query.search;
+      const query = { language: { $regex: search, $options: "i" } };
+      if (search) {
+        const result = await tutorsCollection
+          .find(query)
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+        res.send(result);
+      } else {
+        const result = await tutorsCollection
+          .find()
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+        res.send(result);
+      }
     });
 
     // Send Teachers data by category
