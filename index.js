@@ -89,8 +89,20 @@ async function run() {
     app.get("/countUser&Tutorials", async (req, res) => {
       const numberOfUsers = await usersCollection.estimatedDocumentCount();
       const numberOfTutorials = await tutorsCollection.estimatedDocumentCount();
+      const totalReviews = await tutorsCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null, // No grouping key, so it sums for the entire collection
+              totalReview: { $sum: "$review" }, // Summing the `review` field
+            },
+          },
+        ])
+        .toArray();
 
-      res.send({ numberOfUsers, numberOfTutorials });
+      // Extract the totalReview value
+      const total = totalReviews[0]?.totalReview || 0;
+      res.send({ numberOfUsers, numberOfTutorials, total });
     });
 
     // Send all Teacher data
@@ -130,6 +142,7 @@ async function run() {
       const result = await tutorsCollection.find(query).toArray();
       res.send(result);
     });
+    // Send all tutors images
     app.get("/tutors-images", async (req, res) => {
       const images = await tutorsCollection
         .find({}, { projection: { image: 1, _id: 0 } })
