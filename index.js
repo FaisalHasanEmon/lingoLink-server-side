@@ -51,7 +51,14 @@ async function run() {
     app.post("/bookTutorial", async (req, res) => {
       const bookedTutorial = req.body;
       const result = await bookingsCollection.insertOne(bookedTutorial);
-      // console.log(bookedTutorial);
+      res.send(result);
+    });
+
+    // send bookings
+    app.get("/bookedTutorials/:email", async (req, res) => {
+      const userEmail = req.params.email;
+      const query = { userEmail: userEmail };
+      const result = await bookingsCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -67,6 +74,15 @@ async function run() {
       } else {
         res.send({ exists: false });
       }
+    });
+
+    // delete booked tutorial
+    app.delete("/delete-bookTutorial/:userEmail&:id", async (req, res) => {
+      const userEmail = req.params.userEmail;
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id), userEmail: userEmail };
+      const result = await bookingsCollection.deleteOne(query);
+      res.send(result);
     });
 
     //count user and tutorials
