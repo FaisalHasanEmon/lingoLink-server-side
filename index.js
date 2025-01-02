@@ -33,6 +33,7 @@ async function run() {
     const lingoLinkDB = client.db("lingoLink");
     const tutorsCollection = lingoLinkDB.collection("tutors");
     const usersCollection = lingoLinkDB.collection("users");
+    const bookingsCollection = lingoLinkDB.collection("bookings");
 
     // Add user
     app.post("/newUser", async (req, res) => {
@@ -40,7 +41,35 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+    // Add Tutorial
+    app.post("/addTutorial", async (req, res) => {
+      const newTutorial = req.body;
+      const result = await tutorsCollection.insertOne(newTutorial);
+      res.send(result);
+    });
+    // Add booking
+    app.post("/bookTutorial", async (req, res) => {
+      const bookedTutorial = req.body;
+      const result = await bookingsCollection.insertOne(bookedTutorial);
+      // console.log(bookedTutorial);
+      res.send(result);
+    });
 
+    //Check the booking is available or not
+    app.get("/bookTutorial/:userEmail&:id", async (req, res) => {
+      const userEmail = req.params.userEmail;
+      const tutorialId = req.params.id;
+
+      const query = { userEmail: userEmail, tutorId: tutorialId };
+      const check = await bookingsCollection.findOne(query);
+      if (check) {
+        res.send({ exists: true });
+      } else {
+        res.send({ exists: false });
+      }
+    });
+
+    //count user and tutorials
     app.get("/countUser&Tutorials", async (req, res) => {
       const numberOfUsers = await usersCollection.estimatedDocumentCount();
       const numberOfTutorials = await tutorsCollection.estimatedDocumentCount();
@@ -48,12 +77,6 @@ async function run() {
       res.send({ numberOfUsers, numberOfTutorials });
     });
 
-    // Add Tutorial
-    app.post("/addTutorial", async (req, res) => {
-      const newTutorial = req.body;
-      const result = await tutorsCollection.insertOne(newTutorial);
-      res.send(result);
-    });
     // Send all Teacher data
     app.get("/tutors", async (req, res) => {
       const page = parseInt(req.query.page);
@@ -80,7 +103,7 @@ async function run() {
       const result = await tutorsCollection.find(query).toArray();
       res.send(result);
     });
-
+    // Update My Tutorials
     app.put("/myTutorials", async (req, res) => {
       const updateTutorial = req.body;
       const id = updateTutorial.id;
@@ -105,7 +128,7 @@ async function run() {
 
       res.send(result);
     });
-    // Delete a document by id
+    // Delete a document by id from my tutorials
     app.delete("/myTutorials/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -121,7 +144,7 @@ async function run() {
       res.send(result);
     });
 
-    //Send Teacher number per category
+    //Send Tutorials number per category
     app.get("/category/numberOfTutors", async (req, res) => {
       try {
         const result = await tutorsCollection
